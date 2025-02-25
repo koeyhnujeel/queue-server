@@ -1,5 +1,6 @@
 package zunza.tiketmon.waiting_server.handler;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,12 +17,16 @@ import zunza.tiketmon.waiting_server.service.QueueService;
 public class QueueWebSocketHandler extends TextWebSocketHandler {
 
 	private final QueueService queueService;
-	private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+	private final Map<String, WebSocketSession> sessions;
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+		String uri = session.getUri().toString();
+		String performanceId = extractPerformanceId(uri);
+		session.getAttributes().put("performanceId", performanceId);
+
 		String sessionId = session.getId();
-		queueService.addToQueue(sessionId);
+		queueService.addToQueue(performanceId, sessionId);
 		sessions.put(sessionId, session);
 	}
 
@@ -33,8 +38,14 @@ public class QueueWebSocketHandler extends TextWebSocketHandler {
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+		String performanceId = session.getAttributes().get("performanceId").toString();
 		String sessionId = session.getId();
-		queueService.removeFromQueue(sessionId);
+		queueService.removeFromQueue(performanceId, sessionId);
 		sessions.remove(sessionId);
+	}
+
+	public String extractPerformanceId(String uri) {
+		String[] parts = uri.split("/");
+		return parts[parts.length - 1];
 	}
 }
