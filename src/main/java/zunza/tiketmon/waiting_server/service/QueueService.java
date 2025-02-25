@@ -4,25 +4,27 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import zunza.tiketmon.waiting_server.QueueConstants;
 
 @Service
 @RequiredArgsConstructor
 public class QueueService {
 
 	private final RedisTemplate<String, String> redisTemplate;
-	private final static String KEY = "waiting_queue";
 
-	public void addToQueue(String sessionId) {
+	public void addToQueue(String performanceId, String sessionId) {
 		long timestamp = System.currentTimeMillis();
-		redisTemplate.opsForZSet().add(KEY, sessionId, timestamp);
+		String key = QueueConstants.KEY_PREFIX.getValue() + performanceId;
+		redisTemplate.opsForZSet().add(key, sessionId, timestamp);
 	}
 
 	public int getQueuePosition(String sessionId) {
-		Long rank = redisTemplate.opsForZSet().rank(KEY, sessionId);
+		Long rank = redisTemplate.opsForZSet().rank(QueueConstants.KEY.getValue(), sessionId);
 		return rank == null ? -1 : rank.intValue() + 1;
 	}
 
-	public void removeFromQueue(String sessionId) {
-		redisTemplate.opsForZSet().remove(KEY, sessionId);
+	public void removeFromQueue(String performanceId, String sessionId) {
+		String key = QueueConstants.KEY_PREFIX.getValue() + performanceId;
+		redisTemplate.opsForZSet().remove(key, sessionId);
 	}
 }
