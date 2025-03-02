@@ -1,6 +1,5 @@
 package zunza.tiketmon.waiting_server.scheduler;
 
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -14,15 +13,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import zunza.tiketmon.waiting_server.QueueConstants;
 import zunza.tiketmon.waiting_server.dto.EnterDto;
+import zunza.tiketmon.waiting_server.util.WebSocketSessionManager;
 
 @Component
 @RequiredArgsConstructor
 public class QueueScheduler {
 
-	private final RedisTemplate<String, String> redisTemplate;
-	private final Map<String, WebSocketSession> sessions;
 	private final ObjectMapper objectMapper;
-	
+	private final RedisTemplate<String, String> redisTemplate;
+	private final WebSocketSessionManager webSocketSessionManager;
+
 	@Scheduled(fixedRate = 5000)
 	public void processQueue() {
 		Set<String> keys = redisTemplate.keys(QueueConstants.KEY_PREFIX.getValue() + "*");
@@ -32,7 +32,7 @@ public class QueueScheduler {
 		}
 
 		for (String key : keys) {
-			String performanceId = key.split(":")[key.length() - 1];
+			String performanceId = key.split(":")[2];
 			int size = Integer.parseInt(QueueConstants.SIZE.getValue());
 			Set<String> sessionIds = redisTemplate.opsForZSet().range(key, 0, size);
 
@@ -41,7 +41,7 @@ public class QueueScheduler {
 			}
 
 			for (String sessionId : sessionIds) {
-				WebSocketSession session = sessions.get(sessionId);
+				WebSocketSession session = webSocketSessionManager.getSession(sessionId);
 
 				if (session != null && session.isOpen()) {
 					EnterDto enterDto = new EnterDto(performanceId);
