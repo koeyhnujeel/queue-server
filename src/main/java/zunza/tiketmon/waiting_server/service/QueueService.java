@@ -18,10 +18,10 @@ public class QueueService {
 		redisTemplate.opsForZSet().add(key, sessionId, timestamp);
 	}
 
-	public int getQueuePosition(String sessionId) {
-		Long rank = redisTemplate.opsForZSet().rank(QueueConstants.KEY.getValue(), sessionId);
-		return rank == null ? -1 : rank.intValue() + 1;
-	}
+	// public int getQueuePosition(String sessionId) {
+	// 	Long rank = redisTemplate.opsForZSet().rank(QueueConstants.KEY.getValue(), sessionId);
+	// 	return rank == null ? -1 : rank.intValue() + 1;
+	// }
 
 	public void removeFromQueue(String performanceId, String sessionId) {
 		String key = QueueConstants.KEY_PREFIX.getValue() + performanceId;
