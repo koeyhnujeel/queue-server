@@ -30,18 +30,13 @@ public class QueueWebSocketHandler extends TextWebSocketHandler {
 		log.info("=================WebSocket connected=================");
 	}
 
-	// @Override
-	// public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
-	// 	int position = queueService.getQueuePosition(session.getId());
-	// 	session.sendMessage(new TextMessage(String.valueOf(position)));
-	// }
-
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 		String performanceId = session.getAttributes().get("performanceId").toString();
 		String sessionId = session.getId();
 		queueService.removeFromQueue(performanceId, sessionId);
 		webSocketSessionManager.removeSession(sessionId);
+		log.info("=================WebSocket disconnected=================");
 	}
 
 	public String extractPerformanceId(String uri) {
