@@ -18,6 +18,22 @@ public class RedisService {
 
 	private final RedisTemplate<String, String> redisTemplate;
 
+	public Boolean zAdd(String key, String value, double score) {
+		return redisTemplate.opsForZSet().add(key, value, score);
+	}
+
+	public Set<String> zRange(String key, long start, long end) {
+		return redisTemplate.opsForZSet().range(key, start, end);
+	}
+
+	public Long zRemove(String key, Object... values) {
+		return redisTemplate.opsForZSet().remove(key, values);
+	}
+
+	public Long zRank(String key, Object o) {
+		return redisTemplate.opsForZSet().rank(key, o);
+	}
+
 	public Set<String> scanKeys(String pattern) {
 		Set<String> keys = new HashSet<>();
 
